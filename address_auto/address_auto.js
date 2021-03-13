@@ -1,9 +1,20 @@
 import areaList from "./area.json"
 
 /**
+ * @typedef {Object} ReturnInfo
+ * @property {String} name - 名字
+ * @property {String} tel - 电话
+ * @property {String} province - 省份
+ * @property {String} city - 城市
+ * @property {String} county - 区县
+ * @property {String} areaCode - 地区编码
+ * @property {String} addressDetail - 详细地址
+ */
+
+/**
  * 收件人信息自动识别
  * @param {String} auto_value 输入的信息
- * @returns {{areaCode: string, addressDetail: string, province: string, city: string, name: string, county: string, tel: string}}
+ * @returns {ReturnInfo}
  */
 function address_auto(auto_value) {
   /**
