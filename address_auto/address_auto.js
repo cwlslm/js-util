@@ -42,67 +42,42 @@ function address_auto(auto_value) {
   let DISPENSIBLE_COUNTYS = [ "林区", "族区", "区", "自治县", "县", "市", "自治旗", "旗" ]
 
   /**
-   * 储存省份信息的数组
-   * 数组内的每个元素也为数组
-   * 每个元素（数组）的长度为4，分别为：[地区编码，省份名称，省略DISPENSIBLE后的名称，相似度]
-   * 相似度为省略DISPENSIBLE后的名称的长度除以名称的长度
-   * @type {Array.<Array.<(String|Number)>>}
+   * 储存地区信息的结构
+   * @typedef {Object} AreaInfo
+   * @property {String} code - 地区编码
+   * @property {String} name - 地区名称
+   * @property {String} name_except_dispensible - 除了dispensible部分后的地区名称
+   * @property {Number} similarity - 匹配name_except_dispensible时的相似度
    */
-  let provinces = Object.entries(areaList.province_list).map(item => {
-    for (let dispensible_item of DISPENSIBLE_PROVINCES) {
-      if (item[1].endsWith(dispensible_item) && item[1].length >= dispensible_item.length + 2) {
-        item.push(item[1].substring(0, item[1].length - dispensible_item.length))
-        break
-      }
-    }
-    if (item.length === 2) {
-      item.push(item[1])
-    }
-    item.push(item[2].length / item[1].length)
-    return item
-  })
 
   /**
-   * 储存城市信息的数组
-   * 数组内的每个元素也为数组
-   * 每个元素（数组）的长度为4，分别为：[地区编码，城市名称，省略DISPENSIBLE后的名称，相似度]
-   * 相似度为省略DISPENSIBLE后的名称的长度除以名称的长度
-   * @type {Array.<Array.<(String|Number)>>}
+   * 地区数据处理函数
+   * @param {Object.<String, String>} data - 地区数据
+   * @param {Array.<String>} dispensible_list - 可忽略的内容
+   * @returns {Array.<AreaInfo>}}
    */
-  let citys = Object.entries(areaList.city_list).map(item => {
-    for (let dispensible_item of DISPENSIBLE_CITYS) {
-      if (item[1].endsWith(dispensible_item) && item[1].length >= dispensible_item.length + 2) {
-        item.push(item[1].substring(0, item[1].length - dispensible_item.length))
-        break
+  let area_data_processing = function (data, dispensible_list) {
+    return Object.entries(data).map(entry => {
+      let item = {
+        code: entry[0] + "",
+        name: entry[1] + "",
+        name_except_dispensible: entry[1] + "",
+        similarity: 1,
       }
-    }
-    if (item.length === 2) {
-      item.push(item[1])
-    }
-    item.push(item[2].length / item[1].length)
-    return item
-  })
+      for (let dispensible_item of dispensible_list) {
+        if (item.name.endsWith(dispensible_item) && item.name.length >= dispensible_item.length + 2) {
+          item.name_except_dispensible = item.name.substring(0, item.name.length - dispensible_item.length)
+          item.similarity = item.name_except_dispensible.length / item.name.length
+          break
+        }
+      }
+      return item
+    })
+  }
 
-  /**
-   * 储存区县信息的数组
-   * 数组内的每个元素也为数组
-   * 每个元素（数组）的长度为4，分别为：[地区编码，区县名称，省略DISPENSIBLE后的名称，相似度]
-   * 相似度为省略DISPENSIBLE后的名称的长度除以名称的长度
-   * @type {Array.<Array.<(String|Number)>>}
-   */
-  let countys = Object.entries(areaList.county_list).map(item => {
-    for (let dispensible_item of DISPENSIBLE_COUNTYS) {
-      if (item[1].endsWith(dispensible_item) && item[1].length >= dispensible_item.length + 2) {
-        item.push(item[1].substring(0, item[1].length - dispensible_item.length))
-        break
-      }
-    }
-    if (item.length === 2) {
-      item.push(item[1])
-    }
-    item.push(item[2].length / item[1].length)
-    return item
-  })
+  let provinces = area_data_processing(areaList.province_list, DISPENSIBLE_PROVINCES)   // 储存省份信息的数组
+  let citys = area_data_processing(areaList.city_list, DISPENSIBLE_CITYS)               // 储存省份信息的数组
+  let countys = area_data_processing(areaList.county_list, DISPENSIBLE_COUNTYS)         // 储存省份信息的数组
 
   /**
    * 匹配到的信息的结构
@@ -111,13 +86,13 @@ function address_auto(auto_value) {
    * @property {String} name - 地区名称
    * @property {Number} similarity - 相似度（完全匹配时为1）
    * @property {Number} split_res_index - 对应的split_res数组中的数据的索引
-   * @property {?Number} capture_province - 捕获的省份内容，此字段只在省份信息内存在
-   * @property {?Number} capture_city - 捕获的城市内容，此字段只在城市信息内存在
-   * @property {?Number} capture_county - 捕获的区县内容，此字段只在区县信息内存在
-   * @property {!Number} max_city_split_res_index - 最大相似度的城市对应的split_res数组中的数据的索引，此字段只在最终结果中存在
-   * @property {!Number} max_city_resInfo_index - 最大相似度的城市对应的city_resInfo_list数组中的数据的索引，此字段只在最终结果中存在
-   * @property {!Number} max_province_split_res_index - 最大相似度的省份对应的split_res数组中的数据的索引，此字段只在最终结果中存在
-   * @property {!Number} max_province_resInfo_index - 最大相似度的省份对应的province_resInfo_list数组中的数据的索引，此字段只在最终结果中存在
+   * @property {String} [capture_province] - 捕获的省份内容，此字段只在省份信息内存在
+   * @property {String} [capture_city] - 捕获的城市内容，此字段只在城市信息内存在
+   * @property {String} [capture_county] - 捕获的区县内容，此字段只在区县信息内存在
+   * @property {Number} [max_city_split_res_index] - 最大相似度的城市对应的split_res数组中的数据的索引，此字段只在最终结果中存在
+   * @property {Number} [max_city_resInfo_index] - 最大相似度的城市对应的city_resInfo_list数组中的数据的索引，此字段只在最终结果中存在
+   * @property {Number} [max_province_split_res_index] - 最大相似度的省份对应的split_res数组中的数据的索引，此字段只在最终结果中存在
+   * @property {Number} [max_province_resInfo_index] - 最大相似度的省份对应的province_resInfo_list数组中的数据的索引，此字段只在最终结果中存在
    */
 
   /**
@@ -169,8 +144,7 @@ function address_auto(auto_value) {
 
   // 开始识别，遍历split_res_ex
   for (let i = 0; i < split_res_ex.length; i++) {
-    // 当前遍历元素
-    let split_res_item = split_res_ex[i]
+    let split_res_item = split_res_ex[i]    // 当前遍历元素
 
     // 识别到手机（如果有多个，只储存最后一个）
     if (reg_exp_mobile.test(split_res_item.value)) {
@@ -196,21 +170,21 @@ function address_auto(auto_value) {
         let capture_value = undefined   // 储存捕获到的名称
 
         // 完整匹配某个（省份）或（城市）或（区县）的名称
-        if (split_res_item.value.search(item[1]) !== -1) {
-          similarity = 1        // 相似度为1
-          capture_value = item[1]   // 储存完整名称
+        if (split_res_item.value.search(item.name) !== -1) {
+          similarity = 1            // 相似度为1
+          capture_value = item.name   // 储存完整名称
         }
         // 非完整匹配某个（省份）或（城市）或（区县）的名称
-        else if (split_res_item.value.search(item[2]) !== -1) {
-          similarity = item[3]  // 储存相似度（前面已计算）
-          capture_value = item[2]   // 储存省略后的名称
+        else if (split_res_item.value.search(item.name_except_dispensible) !== -1) {
+          similarity = item.similarity      // 储存相似度（前面已计算）
+          capture_value = item.name_except_dispensible   // 储存省略后的名称
         }
 
         // 成功匹配，储存信息
         if (similarity !== undefined) {
           loop_data[j].resInfo_list.push({
-            code: item[0],
-            name: item[1],
+            code: item.code,
+            name: item.name,
             similarity: similarity,
             split_res_index: i,
             [`capture_${loop_data[j].type_name}`]: capture_value
