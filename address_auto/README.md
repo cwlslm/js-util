@@ -8,3 +8,6 @@
 ![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/003.png)
 ![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/004.png)
 ![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/005.png)
+![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/006.png)
+![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/007.jpg)
+![image](https://github.com/cwlslm/js-util/blob/main/address_auto/image/008.jpg)

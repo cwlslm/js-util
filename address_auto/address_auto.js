@@ -27,7 +27,7 @@ function address_auto(auto_value) {
    * 支持的分割符
    * @type {string[]}
    */
-  let splitters = [",", "，", " "]
+  let splitters = [",", "，", " ", "\r\n", "\n"]
 
   // 按不同的分隔符依次分割
   for (let splitter of splitters) {
@@ -364,11 +364,16 @@ function address_auto(auto_value) {
     let matching_county = county_resInfo_list[0]    // 最终匹配元素
 
     let detail_join_index_list = []   // 储存详细地址的各个部分对应的split_res_ex数组元素的索引
+
     // 若有匹配到的省份
     if (matching_county.hasOwnProperty("max_province_split_res_index")) {
       detail_join_index_list.push(matching_county.max_province_split_res_index)
       province = province_resInfo_list[matching_county.max_province_resInfo_index].name
     }
+    else {
+      province = areaList.province_list[matching_county.code.substring(0, 2) + "0000"]
+    }
+
     // 若有匹配到的城市
     if (matching_county.hasOwnProperty("max_city_split_res_index")) {
       // 检测是否与匹配到的省份对应的split_res_ex数组元素的索引重复，不重复才添加
@@ -377,6 +382,10 @@ function address_auto(auto_value) {
       }
       city = city_resInfo_list[matching_county.max_city_resInfo_index].name
     }
+    else {
+      city = areaList.city_list[matching_county.code.substring(0, 4) + "00"]
+    }
+
     // 检测是否与匹配到的省份及城市对应的split_res_ex数组元素的索引重复，不重复才添加
     if (detail_join_index_list.indexOf(matching_county.split_res_index) === -1) {
       detail_join_index_list.push(matching_county.split_res_index)
